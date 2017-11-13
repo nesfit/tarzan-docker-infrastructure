@@ -1,0 +1,88 @@
+This file contains GPG keys of Apache Livy developers.
+
+Users:    gpg --import KEYS
+
+Developers:
+  Create a key:
+    gpg --gen-key
+
+  Adding your key to this file:
+    (gpg --list-sigs <key id> && gpg --armor --export <key id>) >> KEYS.
+
+  Publish the key:
+    gpg --keyserver pgp.mit.edu --send-keys <key id>
+
+  Signing another developers key:
+    gpg --keyserver pgp.mit.edu --search-keys <name or email>
+    gpg --keyserver pgp.mit.edu --recv-keys <key id>
+    gpg --sign-key <key id>
+    gpg --keyserver pgp.mit.edu --send-keys <key id>
+
+  Additional Information:
+    http://www.apache.org/dev/openpgp.html#generate-key
+
+********************************* PLEASE NOTE **********************************
+
+  Releases will be signed using one of these keys in this file. This file will
+  be available with the distributed Apache Livy releases at:
+
+      https://dist.apache.org/repos/dist/release/incubator/livy/KEYS
+
+********************************************************************************
+pub   4096R/12973FD0 2017-08-07
+uid                  Saisai Shao (CODE SIGNING KEY) <jshao@apache.org>
+sig 3        12973FD0 2017-08-07  Saisai Shao (CODE SIGNING KEY) <jshao@apache.org>
+sub   4096R/A0A12D58 2017-08-07
+sig          12973FD0 2017-08-07  Saisai Shao (CODE SIGNING KEY) <jshao@apache.org>
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+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
+kyHyHY5kPG9HfDOSahPz
+=SDAz
+-----END PGP PUBLIC KEY BLOCK-----
