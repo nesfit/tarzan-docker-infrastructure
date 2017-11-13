@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "*** setting up SSHd" >&2
+
 # server keys
 ssh-keygen -A
 # client keys

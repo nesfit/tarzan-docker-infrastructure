@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "*** configuring Apache Spark" >&2
+
 SPARK_SLAVES_FILE="${SPARK_HOME}/conf/slaves"
 SPARK_DEF_CONF="${SPARK_HOME}/conf/spark-defaults.conf"
 SPARK_ENV="${SPARK_HOME}/conf/spark-env.sh"

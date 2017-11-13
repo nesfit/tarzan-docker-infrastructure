@@ -15,37 +15,29 @@ stages:
   - release
   - deploy
 
-variables:
-  IMAGE_TAG_COMMIT: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}
-  IMAGE_TAG_LATEST: ${CI_REGISTRY_IMAGE}:latest
-
 before_script:
   - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
 
 build:
   stage: build
   script:
-    - docker build --pull -t ${IMAGE_TAG_COMMIT} .
-    - docker push ${IMAGE_TAG_COMMIT}
+    - make IMAGE=${CI_REGISTRY_IMAGE} TAG_DEVEL=${CI_COMMIT_REF_NAME} build push-devel
 
 test001:
   stage: test
   script:
-    - docker pull ${IMAGE_TAG_COMMIT}
-    - docker run ${IMAGE_TAG_COMMIT} /usr/local/bin/tarzan-test-001
+    - make IMAGE=${CI_REGISTRY_IMAGE} TAG_DEVEL=${CI_COMMIT_REF_NAME} pull-devel test001
 
 release-image:
   stage: release
   script:
-    - docker pull ${IMAGE_TAG_COMMIT}
-    - docker tag ${IMAGE_TAG_COMMIT} ${IMAGE_TAG_LATEST}
-    - docker push ${IMAGE_TAG_LATEST}
+    - make IMAGE=${CI_REGISTRY_IMAGE} TAG_DEVEL=${CI_COMMIT_REF_NAME} pull-devel tag-latest push-latest
   only:
     - master
 
 deploy:
   stage: deploy
   script:
-    - make deploy
+    - make IMAGE=${CI_REGISTRY_IMAGE} TAG_DEVEL=${CI_COMMIT_REF_NAME} deploy
   only:
     - master

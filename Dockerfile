@@ -14,7 +14,7 @@ ENV CASSANDRA_NATTRANS_PORT=9042
 ENV ZOOKEEPER_PORT=2181
 ENV KAFKA_BOOTSTRAP_PORT=9092
 ENV LIVY_PORT=8998
-ENV ZEPPELIN_PORT=8080
+ENV ZEPPELIN_PORT=8082
 ENV JAVA_HOME="/etc/alternatives/java_sdk"
 ENV HADOOP_HOME="/opt/hadoop"
 ENV HADOOP_CONF_DIR="${HADOOP_HOME}/etc/hadoop"
@@ -43,14 +43,14 @@ WORKDIR /home
 # prepare
 
 RUN \
-yum install -y epel-release wget gpg tar which java-devel rsync openssh-server openssh-clients && \
+yum install -y epel-release wget gpg tar unzip which java-devel rsync openssh-server openssh-clients && \
 yum clean all && \
 rm -rf /var/cache/yum
 
 # download and install
 
 COPY install "${INSTALL_DIR}"
-RUN cd "${INSTALL_DIR}" && ls -l && for I in ./*.sh; do . "${I}"; done
+RUN cd "${INSTALL_DIR}" && for I in ./*.sh; do . "${I}"; done
 
 # configure
 
