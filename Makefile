@@ -13,8 +13,11 @@ clean:
 	-docker rmi $(LOCAL_IMAGE)
 
 push: build
-	docker tag $(LOCAL_IMAGE) $(SPARK_IMAGE)
-	docker push $(SPARK_IMAGE)
+	docker tag $(LOCAL_IMAGE) $(REMOTE_IMAGE)
+	docker push $(REMOTE_IMAGE)
 
 shell:
 	docker run --init --tty=true --interactive=true $(LOCAL_IMAGE) bash
+
+deploy:
+	echo "TODO: deploy"
