@@ -50,12 +50,12 @@ rm -rf /var/cache/yum
 # download and install
 
 COPY install "${INSTALL_DIR}"
-RUN cd "${INSTALL_DIR}" && for I in ./*.sh; do . "${I}"; done
+RUN cd "${INSTALL_DIR}" && for I in ./*.sh; do "${I}" || exit $?; done
 
 # configure
 
 COPY configure "${CONFIGURE_DIR}"
-RUN cd "${CONFIGURE_DIR}" && for I in ./*.sh; do . "${I}"; done
+RUN cd "${CONFIGURE_DIR}" && for I in ./*.sh; do "${I}" || exit $?; done
 
 # clean and finish
 
