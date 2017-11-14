@@ -23,6 +23,7 @@ ENV CASSANDRA_HOME="/opt/cassandra"
 ENV KAFKA_HOME="/opt/kafka"
 ENV LIVY_HOME="/opt/livy"
 ENV ZEPPELIN_HOME="/opt/zeppelin"
+ENV ROTARZAN_HOME="/opt/rysavy-ondrej-tarzan-java"
 ENV PATH="${PATH}:${HADOOP_HOME}/bin:${SPARK_HOME}/bin:${CASSANDRA_HOME}/bin:${KAFKA_HOME}/bin:${LIVY_HOME}/bin:${ZEPPELIN_HOME}/bin:/usr/local/bin"
 
 ARG INSTALL_DIR="/tmp/install"
@@ -43,19 +44,21 @@ WORKDIR /home
 # prepare
 
 RUN \
-yum install -y epel-release wget gpg tar unzip which java-devel rsync openssh-server openssh-clients && \
-yum clean all && \
-rm -rf /var/cache/yum
+yum install -y epel-release wget gpg tar unzip which java-devel rsync openssh-server openssh-clients git maven \
+&& yum clean all \
+&& rm -rf /var/cache/yum
 
 # download and install
 
 COPY install "${INSTALL_DIR}"
-RUN cd "${INSTALL_DIR}" && for I in ./*.sh; do "${I}" || exit $?; done
+RUN cd "${INSTALL_DIR}" \
+&& . ./env-common.sh && for I in ./??_*.sh; do "${I}" || exit $?; done
 
 # configure
 
 COPY configure "${CONFIGURE_DIR}"
-RUN cd "${CONFIGURE_DIR}" && for I in ./*.sh; do "${I}" || exit $?; done
+RUN cd "${CONFIGURE_DIR}" \
+&& . ./env-common.sh && for I in ./??_*.sh; do "${I}" || exit $?; done
 
 # clean and finish
 
@@ -71,5 +74,8 @@ EXPOSE \
 "${LIVY_PORT}" \
 "${ZEPPELIN_PORT}"
 
-# no entry point -- see Makefile to start
+# no entry point -- see Makefile to start the image with applications
 #ENTRYPOINT ["/usr/local/bin/tarzan-start-single"]
+
+# however, it is possible to run a shell and start the application manually
+CMD ["/usr/bin/bash", "--login"]

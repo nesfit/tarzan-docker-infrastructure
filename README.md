@@ -18,8 +18,11 @@ make REMOTE=1 pull-latest
 
 Run the latest Docker image for a single host (where `X` is any non-empty identifier as the target name will be utilised as a name and a hostname of the running image):
 ~~~sh
-make tarzan-single-latestX
+make single-latestX
 ~~~
+
+Alternatively, without GNU make, you can run the Docker image `registry.gitlab.com/rychly/tarzan-platform-docker:latest` directly (or by `make shell-latestX`)
+and use its script `/usr/local/bin/tarzan-start-single` to start applications for the single host.
 
 To stop the running image, exit the shell (by `exit`).
 

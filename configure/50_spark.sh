@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+set -o pipefail
+
 echo "*** configuring Apache Spark" >&2
 
 SPARK_SLAVES_FILE="${SPARK_HOME}/conf/slaves"

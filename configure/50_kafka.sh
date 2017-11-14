@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+set -o pipefail
+
 echo "*** configuring Apache Kafka" >&2
 
 KAFKA_CONF="${KAFKA_HOME}/config/server.properties"

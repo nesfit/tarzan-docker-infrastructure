@@ -15,7 +15,7 @@ DOCKER_PORTS:=$(shell grep '\(ENV\|ARG\) [^ ]*_PORT=' Dockerfile | cut -d ' ' -f
 
 all:
 
-.PHONY: all build clean clean-latest deploy desc-ports distclean pull-devel push-devel pull-latest push-latest rebuild tag-latest show-ports show-ips tarzan-single% tarzan-single-latest% test%
+.PHONY: all build clean clean-latest deploy desc-ports distclean pull-devel push-devel pull-latest push-latest rebuild tag-latest shell% shell-latest% show-ports show-ips single% single-latest% test%
 
 build:
 	docker build --pull -t $(IMAGE_DEVEL) .
@@ -53,20 +53,26 @@ rebuild: clean build
 tag-latest:
 	docker tag $(IMAGE_DEVEL) $(IMAGE_LATEST)
 
+shell%:
+	docker start --interactive tarzan-$(@) || docker run --init --tty --interactive --publish-all --hostname=tarzan-$(@) --name=tarzan-$(@) $(IMAGE_DEVEL)
+
+shell-latest%:
+	docker start --interactive tarzan-$(@) || docker run --init --tty --interactive --publish-all --hostname=tarzan-$(@) --name=tarzan-$(@) $(IMAGE_LATEST)
+
 show-ports:
 	docker ps -f ancestor=$(IMAGE_DEVEL) -f ancestor=$(IMAGE_LATEST) --format '{{.ID}}' | xargs -n 1 docker port
 
 show-ips:
 	docker ps -f ancestor=$(IMAGE_DEVEL) -f ancestor=$(IMAGE_LATEST) --format '{{.ID}}' | xargs -n 1 docker inspect | grep '\("Id"\|"Hostname"\|"Image"\|"IPAddress"\)'
 
-tarzan-single%:
-	docker run --init --tty --interactive --publish-all --hostname=$(@) --name=$(@) $(IMAGE_DEVEL) $(BIN_PATH_PREF)start-single bash
+single%:
+	docker start --interactive tarzan-$(@) || docker run --init --tty --interactive --publish-all --hostname=tarzan-$(@) --name=tarzan-$(@) $(IMAGE_DEVEL) $(BIN_PATH_PREF)start-single bash
 
-tarzan-single-latest%:
-	docker run --init --tty --interactive --publish-all --hostname=$(@) --name=$(@) $(IMAGE_LATEST) $(BIN_PATH_PREF)start-single bash
+single-latest%:
+	docker start --interactive tarzan-$(@) || docker run --init --tty --interactive --publish-all --hostname=tarzan-$(@) --name=tarzan-$(@) $(IMAGE_LATEST) $(BIN_PATH_PREF)start-single bash
 
 test%:
 	docker run $(IMAGE_DEVEL) $(BIN_PATH_PREF)$(@)
 
-test tarzan-single tarzan-single-latest:
+test shell shell-latest single single-latest:
 	@echo "There must be suffix after target '$(@)' to run the target in a particular instance, e.g., as '$(@)-myinstance'."; false

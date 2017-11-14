@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+set -o pipefail
+
 echo "*** setting up SSHd" >&2
 
 # server keys

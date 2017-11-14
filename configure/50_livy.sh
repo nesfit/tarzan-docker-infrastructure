@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+set -o pipefail
+
 echo "*** configuring Apache Livy" >&2
 
 LIVY_CONF="${LIVY_HOME}/conf/livy.conf.template"

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+set -o pipefail
+
 echo "*** configuring Apache ZooKeeper" >&2
 
 ZOOKEEPER_CONF="${KAFKA_HOME}/config/zookeeper.properties"

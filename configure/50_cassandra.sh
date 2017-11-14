@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+set -o pipefail
+
 echo "*** configuring Apache Cassandra" >&2
 
 CASSANDRA_CONF="${CASSANDRA_HOME}/conf/cassandra.yaml"

@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+set -o pipefail
+
 echo "*** configuring Apache Zeppelin" >&2
 
 ZEPPELIN_CONF="${ZEPPELIN_HOME}/conf/zeppelin-site.xml.template"

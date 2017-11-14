@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+set -o pipefail
+
 echo "*** configuring Apache Hadoop HDFS" >&2
 
 HDFS_CONF="${HADOOP_HOME}/etc/hadoop/hdfs-site.xml"
