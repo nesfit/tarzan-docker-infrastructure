@@ -3,9 +3,9 @@ TAG_DEVEL=devel
 TAG_LATEST=latest
 IMAGE_DEVEL=$(IMAGE):$(TAG_DEVEL)
 IMAGE_LATEST=$(IMAGE):$(TAG_LATEST)
-TEST_PATH_PREF=/usr/local/bin/tarzan-
+BIN_PATH_PREF=/usr/local/bin/tarzan-
 
-.PHONY: all build clean deploy pull-devel push-devel push-latest rebuild tag-latest shell test%
+.PHONY: all build clean deploy pull-devel push-devel push-latest rebuild tag-latest single-shell test%
 
 all:
 
@@ -33,8 +33,8 @@ rebuild: clean build
 tag-latest:
 	docker tag $(IMAGE_DEVEL) $(IMAGE_LATEST)
 
-shell:
-	docker run --init --tty --interactive --publish-all $(IMAGE_DEVEL) bash
+single-shell:
+	docker run --init --tty --interactive --publish-all --hostname=tarzan-single $(IMAGE_DEVEL) $(BIN_PATH_PREF)start-single bash
 
 test%:
-	docker run $(IMAGE_DEVEL) $(TEST_PATH_PREF)$(@)
+	docker run $(IMAGE_DEVEL) $(BIN_PATH_PREF)$(@)

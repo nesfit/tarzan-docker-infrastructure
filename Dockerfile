@@ -71,4 +71,5 @@ EXPOSE \
 "${LIVY_PORT}" \
 "${ZEPPELIN_PORT}"
 
-ENTRYPOINT ["/usr/local/bin/launch.sh"]
+# no entry point -- see Makefile to start
+#ENTRYPOINT ["/usr/local/bin/tarzan-start-single"]

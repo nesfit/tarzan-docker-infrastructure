@@ -1,30 +1,40 @@
 #!/bin/sh
 
 # SSHd
+echo "*** starting SSH daemon" >&2
 /usr/sbin/sshd
 
 # HDSF
+echo "*** starting HDFS name-node" >&2
 /opt/hadoop/bin/hdfs namenode &
+echo "*** starting HDFS data-node" >&2
 /opt/hadoop/bin/hdfs datanode &
 sleep 5
 
 # Spark
+echo "*** starting Spark master node" >&2
 /opt/spark/sbin/start-master.sh
+echo "*** starting Spark slave node" >&2
 /opt/spark/sbin/start-slaves.sh
 
 # Livy
-/opt/livy/bin/livy-server
+echo "*** starting Livy" >&2
+/opt/livy/bin/livy-server start
 
 # Cassandra
+echo "*** starting Cassandra" >&2
 /opt/cassandra/bin/cassandra -R
 
 # ZooKeeper (in Kafka)
+echo "*** starting Zookeper" >&2
 /opt/kafka/bin/zookeeper-server-start.sh -daemon /opt/kafka/config/zookeeper.properties
 
 # Kafka
+echo "*** starting Kafka" >&2
 /opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
 
 # Zeppelin
+echo "*** starting Zeppelin" >&2
 /opt/zeppelin/bin/zeppelin-daemon.sh start
 
 # run args/cmd
