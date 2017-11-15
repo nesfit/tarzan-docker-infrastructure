@@ -14,6 +14,9 @@ cd "${ROTARZAN_HOME}"
 mvn package
 cd -
 
+# clean Maven cache for downloaded artefacts
+rm -rf ~/.m2/repository
+
 if grep -q 'spark.jars\s' "${SPARK_DEF_CONF}"; then
 	sed -i "s|^\\(spark.jars\\s.*\\)\$|\\1,${ROTARZAN_NDX_SPARK_SHELL}|" "${SPARK_DEF_CONF}"
 else

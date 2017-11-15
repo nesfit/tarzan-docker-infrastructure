@@ -1,5 +1,30 @@
 # TARZAN Platform Docker Repository
 
+## Components
+
+### Distributed Computing
+
+* [Apache Spark](https://spark.apache.org/docs/latest/) -- batch and stream processing
+* [Apache Hadoop](https://hadoop.apache.org/docs/current/) -- MapReduce batch processing, a platform base
+
+### Data Storage
+
+* [Apache Cassandra](https://cassandra.apache.org/doc/latest/) -- a NoSQL database
+* [Apache HDFS](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html) -- a file-system
+
+### Communication
+
+* [Apache Kafka](https://kafka.apache.org/documentation.html) -- a message queue broker
+
+### API / Development Tools
+
+* [Apache Livy](https://livy.incubator.apache.org/docs/latest/) -- REST API for Apache Spark
+* [Apache Zeppelin](https://zeppelin.apache.org/docs/) -- Web UI for various distributed computation/data processing interpreters and data visualisation
+
+## Applications
+
+* [rysavy-ondrej/Tarzan](https://github.com/rysavy-ondrej/Tarzan) -- not only packet analysis in Spark
+
 ## End-users
 
 ### Set-up the Environment
@@ -16,7 +41,7 @@ Pull the latest Docker image of the platform:
 make REMOTE=1 pull-latest
 ~~~
 
-Run the latest Docker image for a single host (where `X` is any non-empty identifier as the target name will be utilised as a name and a hostname of the running image):
+Run the latest Docker image for a single host (where `X` is any non-empty identifier; the target name will be utilised as a name and a hostname of the running image):
 ~~~sh
 make single-latestX
 ~~~
@@ -36,13 +61,19 @@ To stop the running image, exit the shell (by `exit`).
 
 Let `172.17.0.2` be an IP address of the running platform image. Then, the following are Web UI addresses (with default port numbers) of the platform applications:
 
-* [Apache Zeppelin](http://172.17.0.2:8082/)
 * Apache Spark
   * [Spark Master](http://172.17.0.2:8080/)
   * [Spark Slave](http://172.17.0.2:8081/)
-* Apache Hadoop
+* Apache Hadoop / HDFS
+  * `hadoop`
   * [HDFS NameNode](http://172.17.0.2:50070/)
+* Apache Cassandra
+  * CQL Shell for Apache Cassandra: `cqlsh`
+* Apache Kafka
+  * sender/receiver from/to stdout: `kafka-console-producer.sh` and `kafka-console-consumer.sh`
+  * message queues management: `kafka-topics.sh`
 * [Apache Livy](http://172.17.0.2:8998/)
+* [Apache Zeppelin](http://172.17.0.2:8082/)
 
 These applications can be accessed also at forwarded local port numbers (see the section on IPs/Ports).
 
