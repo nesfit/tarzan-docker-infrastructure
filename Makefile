@@ -1,7 +1,8 @@
 IMAGE:=rychly/tarzan-platform-docker
 REGISTRY:=registry.gitlab.com
 
-ifdef REMOTE
+# use LOCAL=1 for operations on local Docker images without REGISTRY prefix
+ifndef LOCAL
 IMAGE:=$(REGISTRY)/$(IMAGE)
 endif
 
