@@ -38,7 +38,7 @@
 Pull the latest Docker image of the platform:
 
 ~~~sh
-make REMOTE=1 pull-latest
+make pull-latest
 ~~~
 
 Run the latest Docker image for a single host (where `X` is any non-empty identifier; the target name will be utilised as a name and a hostname of the running image):
