@@ -1,7 +1,7 @@
 IMAGE:=rychly/tarzan-platform-docker
 REGISTRY:=registry.gitlab.com
 
-ifdef REMOTE
+ifndef REMOTE
 IMAGE:=$(REGISTRY)/$(IMAGE)
 endif
 
