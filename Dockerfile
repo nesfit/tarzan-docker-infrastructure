@@ -52,17 +52,15 @@ yum install -y epel-release wget gpg tar unzip which java-devel rsync openssh-se
 
 COPY install "${INSTALL_DIR}"
 RUN cd "${INSTALL_DIR}" \
-&& . ./env-common.sh && for I in ./??_*.sh; do "${I}" || exit $?; done
+&& . ./env-common.sh && for I in ./??_*.sh; do "${I}" || exit $?; done \
+&& rm -rf "${INSTALL_DIR}"
 
 # configure
 
 COPY configure "${CONFIGURE_DIR}"
 RUN cd "${CONFIGURE_DIR}" \
-&& . ./env-common.sh && for I in ./??_*.sh; do "${I}" || exit $?; done
-
-# clean and finish
-
-RUN rm -rf "${INSTALL_DIR}" "${CONFIGURE_DIR}"
+&& . ./env-common.sh && for I in ./??_*.sh; do "${I}" || exit $?; done \
+&& rm -rf "${CONFIGURE_DIR}"
 
 # start the main process
 
