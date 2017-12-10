@@ -82,6 +82,53 @@ These applications can be accessed also at forwarded local port numbers (see the
 * report [by email](mailto:incoming+rychly/tarzan-platform-docker@gitlab.com)
 * or see [known issues](https://gitlab.com/rychly/tarzan-platform-docker/issues/service_desk)
 
+## Examples
+
+### NDX-SPARK-NETFLOW
+
+For the original example, see [NDX documentation](https://github.com/rysavy-ondrej/Tarzan/blob/master/Java/doc/spark-flowstat.md).
+
+#### Zeppelin Notebook
+
+~~~scala
+%spark
+import org.ndx.model.Packet;
+import org.ndx.model.PacketModel.RawFrame;
+import org.ndx.model.Statistics;
+
+val frames = sc.hadoopFile("hdfs://localhost/cap/*.cap",
+classOf[org.ndx.pcap.PcapInputFormat],
+classOf[org.apache.hadoop.io.LongWritable],
+classOf[org.apache.hadoop.io.ObjectWritable])
+
+val packets = frames.map(x=> Packet.parsePacket(x._2.get().asInstanceOf[RawFrame]))
+
+val capinfo = packets.map(x => Statistics.fromPacket(x)).reduce(Statistics.merge)
+
+val stats = flows.map(x=>(x._1,Statistics.fromPacket(x._2))).reduceByKey(Statistics.merge)
+
+case class PacketStat(first:java.sql.Date, last:java.sql.Date, protocol:String, srcAddr:String, srcSel:String, dstAddr:String, dstSel:String, packets:Integer, octets:Long)
+
+val packetStats = stats.map(c => (Packet.flowKeyParse(c._1),c._2)).map(c => PacketStat(
+    new java.sql.Date(Statistics.ticksToDate(c._2.getFirstSeen()).getTime()),
+    new java.sql.Date(Statistics.ticksToDate(c._2.getLastSeen()).getTime()),
+    c._1.getProtocol().toStringUtf8(),
+    c._1.getSourceAddress().toStringUtf8(),
+    c._1.getSourceSelector().toStringUtf8(),
+    c._1.getDestinationAddress().toStringUtf8(),
+    c._1.getDestinationSelector().toStringUtf8(),
+    c._2.getPackets(),
+    c._2.getOctets()
+    ))
+
+packetStats.toDF.registerTempTable("packetStats")
+~~~
+
+~~~sql
+%sql
+select * from packetStats
+~~~
+
 ## Developers
 
 TBA
