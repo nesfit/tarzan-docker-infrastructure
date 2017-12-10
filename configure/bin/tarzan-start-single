@@ -1,41 +1,66 @@
 #!/bin/sh
 
+START_SSHD=1
+START_HDFS=1
+START_SPARK=1
+#START_LIVY=1
+#START_CASSANDRA=1
+#START_ZOOKEEPER=1
+#START_KAFKA=1
+START_ZEPPELIN=1
+
 # SSHd
-echo "*** starting SSH daemon" >&2
-/usr/sbin/sshd
+if [ -n "${START_SSHD}" ]; then
+	echo "*** starting SSH daemon" >&2
+	/usr/sbin/sshd
+fi
 
 # HDSF
-echo "*** starting HDFS name-node" >&2
-/opt/hadoop/bin/hdfs namenode &
-echo "*** starting HDFS data-node" >&2
-/opt/hadoop/bin/hdfs datanode &
-sleep 5
+if [ -n "${START_HDFS}" ]; then
+	echo "*** starting HDFS name-node" >&2
+	/opt/hadoop/bin/hdfs namenode &
+	echo "*** starting HDFS data-node" >&2
+	/opt/hadoop/bin/hdfs datanode &
+	sleep 5
+fi
 
 # Spark
-echo "*** starting Spark master node" >&2
-/opt/spark/sbin/start-master.sh
-echo "*** starting Spark slave node" >&2
-/opt/spark/sbin/start-slaves.sh
+if [ -n "${START_SPARK}" ]; then
+	echo "*** starting Spark master node" >&2
+	/opt/spark/sbin/start-master.sh
+	echo "*** starting Spark slave node" >&2
+	/opt/spark/sbin/start-slaves.sh
+fi
 
 # Livy
-echo "*** starting Livy" >&2
-/opt/livy/bin/livy-server start
+if [ -n "${START_LIVY}" ]; then
+	echo "*** starting Livy" >&2
+	/opt/livy/bin/livy-server start
+fi
 
 # Cassandra
-echo "*** starting Cassandra" >&2
-/opt/cassandra/bin/cassandra -R
+if [ -n "${START_CASSANDRA}" ]; then
+	echo "*** starting Cassandra" >&2
+	/opt/cassandra/bin/cassandra -R
+fi
 
 # ZooKeeper (in Kafka)
-echo "*** starting Zookeper" >&2
-/opt/kafka/bin/zookeeper-server-start.sh -daemon /opt/kafka/config/zookeeper.properties
+if [ -n "${START_ZOOKEEPER}" ]; then
+	echo "*** starting Zookeper" >&2
+	/opt/kafka/bin/zookeeper-server-start.sh -daemon /opt/kafka/config/zookeeper.properties
+fi
 
 # Kafka
-echo "*** starting Kafka" >&2
-/opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
+if [ -n "${START_KAFKA}" ]; then
+	echo "*** starting Kafka" >&2
+	/opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
+fi
 
 # Zeppelin
-echo "*** starting Zeppelin" >&2
-/opt/zeppelin/bin/zeppelin-daemon.sh start
+if [ -n "${START_ZEPPELIN}" ]; then
+	echo "*** starting Zeppelin" >&2
+	/opt/zeppelin/bin/zeppelin-daemon.sh start
+fi
 
 # run args/cmd
 exec $@
