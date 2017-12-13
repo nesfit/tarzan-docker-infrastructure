@@ -47,7 +47,7 @@ make single-latestX
 ~~~
 
 Alternatively, without GNU make, you can run the Docker image `registry.gitlab.com/rychly/tarzan-platform-docker:latest` directly (or by `make shell-latestX`)
-and use its script `/usr/local/bin/tarzan-start-single` to start applications for the single host.
+and use its script `/usr/local/bin/tarzan-services-single start` to start applications for the single host.
 
 To stop the running image, exit the shell (by `exit`).
 

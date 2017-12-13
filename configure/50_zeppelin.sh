@@ -26,8 +26,8 @@ cat <<END >> "${ZEPPELIN_CONF%.template}"
 </property>
 <property>
   <name>master</name>
-  <value>${SPARK_MASTER}</value>
-  <description>Spark master URI.</description>
+  <value>${SPARK_MASTER_URL}</value>
+  <description>Spark master URL.</description>
 </property>
 <property>
   <name>zeppelin.livy.url</name>
@@ -40,7 +40,7 @@ END
 cat <<END > "${ZEPPELIN_ENV}"
 #!/usr/bin/env bash
 export JAVA_HOME=${JAVA_HOME}
-export MASTER=${SPARK_MASTER}
+export MASTER=${SPARK_MASTER_URL}
 END
 chmod 755 "${ZEPPELIN_ENV}"
 

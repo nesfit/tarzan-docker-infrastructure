@@ -3,8 +3,10 @@
 set -e
 set -o pipefail
 
-echo "*** setting up SSHd" >&2
+echo "*** setting up SSHd (including a password)" >&2
 
+# password
+echo "${GUEST_PASSWORD}" | passwd --stdin "${GUEST_USER}"
 # server keys
 ssh-keygen -A
 # client keys

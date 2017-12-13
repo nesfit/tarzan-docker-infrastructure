@@ -2,9 +2,9 @@ FROM centos:latest
 
 MAINTAINER Marek Rychly <rychly@fit.vutbr.cz>
 
-ENV SPARK_MASTER_HOST=localhost
+ENV SPARK_MASTER=localhost
 ENV SPARK_MASTER_PORT=7077
-ENV SPARK_MASTER="spark://${SPARK_MASTER_HOST}:${SPARK_MASTER_PORT}"
+ENV SPARK_MASTER_URL="spark://${SPARK_MASTER}:${SPARK_MASTER_PORT}"
 ENV SPARK_MASTER_WEBUI_PORT=8080
 ENV SPARK_WORKER_INSTANCES=1
 ENV SPARK_WORKER_PORT=8081
@@ -26,6 +26,9 @@ ENV ZEPPELIN_HOME="/opt/zeppelin"
 ENV ROTARZAN_HOME="/opt/rysavy-ondrej-tarzan-java"
 ENV PATH="${PATH}:${HADOOP_HOME}/bin:${SPARK_HOME}/bin:${CASSANDRA_HOME}/bin:${KAFKA_HOME}/bin:${LIVY_HOME}/bin:${ZEPPELIN_HOME}/bin:/usr/local/bin"
 
+ARG GUEST_USER=root
+ARG GUEST_PASSWORD=tarzan
+ARG GUEST_HOME=/home
 ARG INSTALL_DIR="/tmp/install"
 ARG CONFIGURE_DIR="/tmp/configure"
 ARG HADOOP_VERSION=2.8.2
@@ -38,8 +41,8 @@ ARG SPARK_SLAVES_FILE="${SPARK_HOME}/conf/slaves"
 ARG SPARK_DEF_CONF="${SPARK_HOME}/conf/spark-defaults.conf"
 ARG SPARK_ENV="${SPARK_HOME}/conf/spark-env.sh"
 
-USER root
-WORKDIR /home
+USER ${GUEST_USER}
+WORKDIR ${GUEST_HOME}
 
 # prepare
 
@@ -73,7 +76,7 @@ EXPOSE \
 "${ZEPPELIN_PORT}"
 
 # no entry point -- see Makefile to start the image with applications
-#ENTRYPOINT ["/usr/local/bin/tarzan-start-single"]
+#ENTRYPOINT ["/usr/local/bin/tarzan-services-single", "start"]
 
 # however, it is possible to run a shell and start the application manually
 CMD ["/usr/bin/bash", "--login"]

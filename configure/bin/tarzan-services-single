@@ -1,0 +1,129 @@
+#!/bin/sh
+
+ENABLE_SSHD=1
+ENABLE_HDFS=1
+ENABLE_SPARK=1
+#ENABLE_LIVY=1
+#ENABLE_CASSANDRA=1
+#ENABLE_ZOOKEEPER=1
+#ENABLE_KAFKA=1
+ENABLE_ZEPPELIN=1
+
+start() {
+	# SSHd
+	if [ -n "${ENABLE_SSHD}" ]; then
+		echo "*** starting SSH daemon" >&2
+		if pgrep -f /usr/sbin/sshd >/dev/null; then
+			echo "--- SSH daemon already started" >&2
+		else
+			/usr/sbin/sshd
+		fi
+	fi
+	# HDSF
+	if [ -n "${ENABLE_HDFS}" ]; then
+		echo "*** starting HDFS name-node" >&2
+		/opt/hadoop/bin/hdfs namenode &
+		echo "*** starting HDFS data-node" >&2
+		/opt/hadoop/bin/hdfs datanode &
+		sleep 5
+	fi
+	# Spark
+	if [ -n "${ENABLE_SPARK}" ]; then
+		echo "*** starting Spark master node" >&2
+		/opt/spark/sbin/start-master.sh
+		echo "*** starting Spark slave node" >&2
+		/opt/spark/sbin/start-slaves.sh
+	fi
+	# Livy
+	if [ -n "${ENABLE_LIVY}" ]; then
+		echo "*** starting Livy" >&2
+		/opt/livy/bin/livy-server start
+	fi
+	# Cassandra
+	if [ -n "${ENABLE_CASSANDRA}" ]; then
+		echo "*** starting Cassandra" >&2
+		/opt/cassandra/bin/cassandra -R
+	fi
+	# ZooKeeper (in Kafka)
+	if [ -n "${ENABLE_ZOOKEEPER}" ]; then
+		echo "*** starting Zookeper" >&2
+		/opt/kafka/bin/zookeeper-server-start.sh -daemon /opt/kafka/config/zookeeper.properties
+	fi
+	# Kafka
+	if [ -n "${ENABLE_KAFKA}" ]; then
+		echo "*** starting Kafka" >&2
+		/opt/kafka/bin/kafka-server-start.sh -daemon /opt/kafka/config/server.properties
+	fi
+	# Zeppelin
+	if [ -n "${ENABLE_ZEPPELIN}" ]; then
+		echo "*** starting Zeppelin" >&2
+		/opt/zeppelin/bin/zeppelin-daemon.sh start
+	fi
+}
+
+stop() {
+	# we need to gracefully stop some of the services, the others are ok with SIGTERM
+	# Zeppelin -- must be stopped explicitly (there is a PDI file as a lock managed by the script)
+	if [ -n "${ENABLE_ZEPPELIN}" ]; then
+		echo "*** stopping Zeppelin" >&2
+		/opt/zeppelin/bin/zeppelin-daemon.sh stop
+	fi
+	# Livy -- ok with SIGTERM, however, we will stop explicitly
+	if [ -n "${ENABLE_LIVY}" ]; then
+		echo "*** stopping Livy" >&2
+		/opt/livy/bin/livy-server stop
+	fi
+	# Kafka -- ok with SIGTERM, however, we will stop explicitly
+	if [ -n "${ENABLE_KAFKA}" ]; then
+		echo "*** stopping Kafka" >&2
+		/opt/kafka/bin/kafka-server-stop.sh
+	fi
+	# Spark -- ok with SIGTERM, however, we will stop explicitly
+	if [ -n "${ENABLE_SPARK}" ]; then
+		echo "*** stopping Spark slave node" >&2
+		/opt/spark/sbin/stop-slaves.sh
+		echo "*** stopping Spark master node" >&2
+		/opt/spark/sbin/stop-master.sh
+	fi
+	# Cassandra -- ok with SIGTERM, however, we will kill explicitly
+	if [ -n "${ENABLE_CASSANDRA}" ]; then
+		echo "*** stopping Cassandra" >&2
+		pkill -f ' org\.apache\.cassandra\.service\.CassandraDaemon$'
+	fi
+	# ZooKeeper (in Kafka) -- ok with SIGTERM, however, we will stop explicitly
+	if [ -n "${ENABLE_ZOOKEEPER}" ]; then
+		echo "*** stopping Zookeper" >&2
+		/opt/kafka/bin/zookeeper-server-stop.sh
+	fi
+	# HDSF -- ok with SIGTERM, however, we will kill explicitly
+	if [ -n "${ENABLE_HDFS}" ]; then
+		echo "*** stopping HDFS data-node" >&2
+		pkill -f ' org\.apache\.hadoop\.hdfs\.server\.datanode\.DataNode$'
+		sleep 1
+		echo "*** stopping HDFS name-node" >&2
+		pkill -f ' org\.apache\.hadoop\.hdfs\.server\.namenode\.NameNode$'
+	fi
+	# SSHd -- ok with SIGTERM, we will leave running as it can be utilised to management
+}
+
+case "${1}" in
+--help )
+	echo "Usage: ${0} <start|stop|something-to-execute>" >&2
+	echo "Starts/stops all the preconfigured services; or starts the services, then execute something-to-execute, and finally stops the services." >&2
+	exit
+	;;
+start )
+	shift
+	start
+	;;
+stop )
+	shift
+	stop
+	;;
+* )
+	trap 'stop' SIGTERM
+	start
+	# run args/cmd
+	$@
+	stop
+esac
