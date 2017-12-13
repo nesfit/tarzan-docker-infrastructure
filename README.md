@@ -41,25 +41,25 @@ Pull the latest Docker image of the platform:
 make pull-latest
 ~~~
 
-Run the latest Docker image for a single host (where `X` is any non-empty identifier; the target name will be utilised as a name and a hostname of the running image):
+Run the latest Docker image as a single guest (where `X` is any non-empty identifier; the target name will be utilised as a name and a hostname of the running image):
 ~~~sh
 make single-latestX
 ~~~
 
 Alternatively, without GNU make, you can run the Docker image `registry.gitlab.com/rychly/tarzan-platform-docker:latest` directly (or by `make shell-latestX`)
-and use its script `/usr/local/bin/tarzan-services-single start` to start applications for the single host.
+and use its script `/usr/local/bin/tarzan-services-single start` to start services for the single guest.
 
-To stop the running image, exit the shell (by `exit`).
+To stop the running image (all its services), exit the guest shell (by `exit`).
 
 ### Check IPs/Ports of the Running Image
 
 * list IP addresses of the currently running platform images: `make show-ips`
-* list port numbers where applications should run in the images: `make desc-ports`
+* list port numbers where services should run in the images: `make desc-ports`
 * list port forwardings from the running platform images: `make show-ports`
 
-### Use the Platform Applications
+### Use the Platform Services
 
-Let `172.17.0.2` be an IP address of the running platform image. Then, the following are Web UI addresses (with default port numbers) of the platform applications:
+Let `172.17.0.2` be an IP address of the running platform image. Then, the following are Web UI addresses (with default port numbers) of the platform services:
 
 * Apache Spark
   * [Spark Master](http://172.17.0.2:8080/)
@@ -75,7 +75,7 @@ Let `172.17.0.2` be an IP address of the running platform image. Then, the follo
 * [Apache Livy](http://172.17.0.2:8998/)
 * [Apache Zeppelin](http://172.17.0.2:8082/)
 
-These applications can be accessed also at forwarded local port numbers (see the section on IPs/Ports).
+These services can be accessed also at forwarded local port numbers (see the section on IPs/Ports).
 
 ### Report Issues to a Service Desk
 
@@ -88,7 +88,24 @@ These applications can be accessed also at forwarded local port numbers (see the
 
 For the original example, see [NDX documentation](https://github.com/rysavy-ondrej/Tarzan/blob/master/Java/doc/spark-flowstat.md).
 
+#### PCAP Data in HDFS
+
+From a host machine where the Docker image was started, execute in the shell (the guest IP is `172.17.0.2` by default and its password is "tarzan"):
+
+~~~sh
+scp *.cap root@172.17.0.2:/tmp
+~~~
+
+From the guest machine, execute in the shell:
+~~~sh
+hadoop fs -mkdir /cap
+hadoop fs -put /tmp/*.cap /cap
+hadoop fs -ls /cap
+~~~
+
 #### Zeppelin Notebook
+
+Go to the [Web UI of Zeppelin on the guest](http://172.17.0.2:8082/) and create a new Spark note in the Notebook. Then, create and run the following paragraphs:
 
 ~~~scala
 %spark
@@ -105,9 +122,11 @@ val packets = frames.map(x=> Packet.parsePacket(x._2.get().asInstanceOf[RawFrame
 
 val capinfo = packets.map(x => Statistics.fromPacket(x)).reduce(Statistics.merge)
 
+val flows = packets.map(x=>(x.getFlowString(),x))
+
 val stats = flows.map(x=>(x._1,Statistics.fromPacket(x._2))).reduceByKey(Statistics.merge)
 
-case class PacketStat(first:java.sql.Date, last:java.sql.Date, protocol:String, srcAddr:String, srcSel:String, dstAddr:String, dstSel:String, packets:Integer, octets:Long)
+case class PacketStat(firstSeen:java.sql.Date, lastSeen:java.sql.Date, protocol:String, srcAddr:String, srcSel:String, dstAddr:String, dstSel:String, packets:Integer, octets:Long)
 
 val packetStats = stats.map(c => (Packet.flowKeyParse(c._1),c._2)).map(c => PacketStat(
     new java.sql.Date(Statistics.ticksToDate(c._2.getFirstSeen()).getTime()),
@@ -124,9 +143,43 @@ val packetStats = stats.map(c => (Packet.flowKeyParse(c._1),c._2)).map(c => Pack
 packetStats.toDF.registerTempTable("packetStats")
 ~~~
 
+Get all the packet flows.
+
 ~~~sql
 %sql
 select * from packetStats
+~~~
+
+Get top 10 flows by the number of packets.
+
+~~~sql
+%sql
+select * from packetStats order by packets desc limit 10
+~~~
+
+Get top 20 flows with respect to octets.
+
+~~~sql
+select * from packetStats order by octets desc limit 20
+~~~
+
+Get top 20 flows with the longest duration.
+
+~~~sql
+select * from packetStats order by (lastSeen-firstSeen) desc limit 20
+~~~
+
+Get application flows for a specific application/service.
+
+~~~sql
+select * from packetStats where srcSel = "80" order by packets desc limit 20
+~~~
+
+Get top 10 source addresses by packets communicated in the flows.
+
+~~~sql
+%sql
+select srcAddr, sum(packets) from packetStats group by srcAddr order by sum(packets) desc limit 10
 ~~~
 
 ## Developers

@@ -14,3 +14,12 @@ for I in dsa ecdsa ed25519 rsa; do
 	ssh-keygen -t "${I}" -N '' -f ~/".ssh/id_${I}"
 done
 cat ~/.ssh/id_*.pub >> ~/.ssh/authorized_keys
+# enable auto-updates of < global host key database
+cat >>/etc/ssh/ssh_config <<END
+
+Host localhost 127.* ::1
+	CheckHostIP no
+	HashKnownHosts no
+	StrictHostKeyChecking no
+	UpdateHostKeys yes
+END
