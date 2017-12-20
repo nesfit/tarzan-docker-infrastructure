@@ -12,9 +12,10 @@ DIST_KAFKA_ASC="${APACHE_ORIG}${DIST_KAFKA_PATH}.asc"
 DIST_KAFKA_ASC_FILENAME=$(basename "${DIST_KAFKA_ASC}")
 DEST_DIR=/opt
 
-mkdir -p cache
+mkdir -p cache "${DEST_DIR}"
 cd cache
-wget -c "${DIST_KAFKA}" "${DIST_KAFKA_ASC}"
+wget -c "${DIST_KAFKA}" || true # ignore "HTTP/1.1 416 Requested Range Not Satisfiable" error if the file is already fully retrieved
+wget "${DIST_KAFKA_ASC}"
 gpg --verify "${DIST_KAFKA_ASC_FILENAME}" "${DIST_KAFKA_FILENAME}"
 tar -zxf "${DIST_KAFKA_FILENAME}" -C "${DEST_DIR}"
 rm "${DIST_KAFKA_ASC_FILENAME}" "${DIST_KAFKA_FILENAME}"

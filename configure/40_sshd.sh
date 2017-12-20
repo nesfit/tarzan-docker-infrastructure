@@ -6,7 +6,10 @@ set -o pipefail
 echo "*** setting up SSHd (including a password)" >&2
 
 # password
-echo "${GUEST_PASSWORD}" | passwd --stdin "${GUEST_USER}"
+passwd "${GUEST_USER}" <<END
+${GUEST_PASSWORD}
+${GUEST_PASSWORD}
+END
 # server keys
 ssh-keygen -A
 # client keys

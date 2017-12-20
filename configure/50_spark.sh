@@ -17,3 +17,6 @@ JAVA_HOME=${JAVA_HOME}
 SPARK_DIST_CLASSPATH=\$(${HADOOP_HOME}/bin/hadoop classpath)
 END
 chmod 755 "${SPARK_ENV}"
+
+# Spark shell scripts require ps from procps, they are not compatible with Busybox ps (unknown parameter 'p')
+# Spark shell scripts require nohup from coreutils, they are not compatible with Busybox nohup (cannot interpret parameter '--')

@@ -12,9 +12,10 @@ DIST_ZEPPELIN_ASC="${APACHE_ORIG}${DIST_ZEPPELIN_PATH}.asc"
 DIST_ZEPPELIN_ASC_FILENAME=$(basename "${DIST_ZEPPELIN_ASC}")
 DEST_DIR=/opt
 
-mkdir -p cache
+mkdir -p cache "${DEST_DIR}"
 cd cache
-wget -c "${DIST_ZEPPELIN}" "${DIST_ZEPPELIN_ASC}"
+wget -c "${DIST_ZEPPELIN}" || true # ignore "HTTP/1.1 416 Requested Range Not Satisfiable" error if the file is already fully retrieved
+wget "${DIST_ZEPPELIN_ASC}"
 gpg --verify "${DIST_ZEPPELIN_ASC_FILENAME}" "${DIST_ZEPPELIN_FILENAME}"
 tar -zxf "${DIST_ZEPPELIN_FILENAME}" -C "${DEST_DIR}"
 rm "${DIST_ZEPPELIN_ASC_FILENAME}" "${DIST_ZEPPELIN_FILENAME}"

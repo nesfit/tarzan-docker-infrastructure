@@ -10,6 +10,7 @@ echo "*** clonning and installing ${DIST_ROTARZAN_BASE}" >&2
 DIST_ROTARZAN="${DIST_ROTARZAN_BASE}.git"
 DEST_DIR=/opt
 
+mkdir -p "${DEST_DIR}"
 cd "${DEST_DIR}"
 git clone "${DIST_ROTARZAN}" rysavy-ondrej-tarzan
 ln -vs rysavy-ondrej-tarzan/Java "${ROTARZAN_HOME}"

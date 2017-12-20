@@ -1,8 +1,8 @@
-FROM centos:latest
+FROM openjdk:8-jdk-alpine
 
 MAINTAINER Marek Rychly <rychly@fit.vutbr.cz>
 
-ENV JAVA_HOME="/etc/alternatives/java_sdk"
+ENV JAVA_HOME="/usr/lib/jvm/default-jvm"
 ENV HADOOP_HOME="/opt/hadoop"
 ENV HADOOP_CONF_DIR="${HADOOP_HOME}/etc/hadoop"
 ENV SPARK_HOME="/opt/spark"
@@ -27,17 +27,24 @@ ENV KAFKA_BOOTSTRAP_PORT=9092
 ENV LIVY_PORT=8998
 ENV ZEPPELIN_PORT=8082
 
+# https://hadoop.apache.org/releases.html
+ARG HADOOP_VERSION=2.8.2
+# https://spark.apache.org/downloads.html
+ARG SPARK_VERSION=2.2.0
+# https://cassandra.apache.org/download/
+ARG CASSANDRA_VERSION=3.11.1
+# https://kafka.apache.org/downloads
+ARG KAFKA_VERSION=2.11-1.0.0
+# https://livy.incubator.apache.org/download/
+ARG LIVY_VERSION=0.4.0-incubating
+# https://zeppelin.apache.org/download.html
+ARG ZEPPELIN_VERSION=0.7.3
+
 ARG GUEST_USER=root
 ARG GUEST_PASSWORD=tarzan
 ARG GUEST_HOME=/home
 ARG INSTALL_DIR="/tmp/install"
 ARG CONFIGURE_DIR="/tmp/configure"
-ARG HADOOP_VERSION=2.8.2
-ARG SPARK_VERSION=2.2.0
-ARG CASSANDRA_VERSION=3.11.1
-ARG KAFKA_VERSION=2.11-1.0.0
-ARG LIVY_VERSION=0.4.0-incubating
-ARG ZEPPELIN_VERSION=0.7.3
 ARG SPARK_SLAVES_FILE="${SPARK_HOME}/conf/slaves"
 ARG SPARK_DEF_CONF="${SPARK_HOME}/conf/spark-defaults.conf"
 ARG SPARK_ENV="${SPARK_HOME}/conf/spark-env.sh"
@@ -48,9 +55,7 @@ WORKDIR ${GUEST_HOME}
 # prepare
 
 RUN \
-yum install -y epel-release wget gpg tar unzip which java-devel rsync openssh-server openssh-clients git maven \
-&& yum clean all \
-&& rm -rf /var/cache/yum
+apk add --no-cache gnupg rsync openssh git maven bash procps coreutils
 
 # download and install
 
@@ -80,4 +85,4 @@ EXPOSE \
 #ENTRYPOINT ["/usr/local/bin/tarzan-services-single", "start"]
 
 # however, it is possible to run a shell and start the application manually
-CMD ["/usr/bin/bash", "--login"]
+CMD ["/bin/sh", "--login"]
