@@ -28,9 +28,9 @@ ENV LIVY_PORT=8998
 ENV ZEPPELIN_PORT=8082
 
 # https://hadoop.apache.org/releases.html
-ARG HADOOP_VERSION=2.8.2
+ARG HADOOP_VERSION=3.0.0
 # https://spark.apache.org/downloads.html
-ARG SPARK_VERSION=2.2.0
+ARG SPARK_VERSION=2.2.1
 # https://cassandra.apache.org/download/
 ARG CASSANDRA_VERSION=3.11.1
 # https://kafka.apache.org/downloads
@@ -39,6 +39,8 @@ ARG KAFKA_VERSION=2.11-1.0.0
 ARG LIVY_VERSION=0.4.0-incubating
 # https://zeppelin.apache.org/download.html
 ARG ZEPPELIN_VERSION=0.7.3
+# https://github.com/sgerrand/alpine-pkg-glibc/releases
+ARG ALPINE_GLIBC_PACKAGE_VERSION=2.26-r0
 
 ARG GUEST_USER=root
 ARG GUEST_PASSWORD=tarzan
@@ -56,6 +58,24 @@ WORKDIR ${GUEST_HOME}
 
 RUN \
 apk add --no-cache gnupg rsync openssh git maven bash procps coreutils
+
+# install GNU libc (aka glibc) and set C.UTF-8 locale as default (required by libhadoop.so)
+
+RUN \
+ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download" && \
+ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-${ALPINE_GLIBC_PACKAGE_VERSION}.apk" && \
+ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-${ALPINE_GLIBC_PACKAGE_VERSION}.apk" && \
+ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-${ALPINE_GLIBC_PACKAGE_VERSION}.apk" && \
+wget "https://raw.githubusercontent.com/andyshinn/alpine-pkg-glibc/master/sgerrand.rsa.pub" -O "/etc/apk/keys/sgerrand.rsa.pub" && \
+wget "${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}" && \
+apk add --no-cache "${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" "${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}" && \
+rm "/etc/apk/keys/sgerrand.rsa.pub" && \
+/usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true && \
+echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh && \
+apk del --no-cache glibc-i18n && \
+rm "${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" "${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}"
+
+ENV LANG=C.UTF-8
 
 # download and install
 
