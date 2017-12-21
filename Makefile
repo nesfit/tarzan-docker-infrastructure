@@ -6,8 +6,7 @@ ifndef LOCAL
 IMAGE:=$(REGISTRY)/$(IMAGE)
 endif
 
-#TAG_DEVEL:=$(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'master')
-TAG_DEVEL:=master
+TAG_DEVEL:=$(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'master')
 TAG_LATEST:=latest
 IMAGE_DEVEL:=$(IMAGE):$(TAG_DEVEL)
 IMAGE_LATEST:=$(IMAGE):$(TAG_LATEST)

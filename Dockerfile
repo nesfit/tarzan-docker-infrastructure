@@ -59,36 +59,18 @@ WORKDIR ${GUEST_HOME}
 RUN \
 apk add --no-cache gnupg rsync openssh git maven bash procps coreutils
 
-# install GNU libc (aka glibc) and set C.UTF-8 locale as default (required by libhadoop.so)
-
-RUN \
-ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download" && \
-ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-${ALPINE_GLIBC_PACKAGE_VERSION}.apk" && \
-ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-${ALPINE_GLIBC_PACKAGE_VERSION}.apk" && \
-ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-${ALPINE_GLIBC_PACKAGE_VERSION}.apk" && \
-wget "https://raw.githubusercontent.com/andyshinn/alpine-pkg-glibc/master/sgerrand.rsa.pub" -O "/etc/apk/keys/sgerrand.rsa.pub" && \
-wget "${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}" && \
-apk add --no-cache "${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" "${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}" && \
-rm "/etc/apk/keys/sgerrand.rsa.pub" && \
-/usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true && \
-echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh && \
-apk del --no-cache glibc-i18n && \
-rm "${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" "${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}"
-
-ENV LANG=C.UTF-8
-
 # download and install
 
 COPY install "${INSTALL_DIR}"
 RUN cd "${INSTALL_DIR}" \
-&& . ./env-common.sh && for I in ./??_*.sh; do "${I}" || exit $?; done \
+&& . ./env-common.sh && for I in ./??_*.sh; do if [ -x "${I}" ]; then "${I}" || exit $?; fi; done \
 && rm -rf "${INSTALL_DIR}"
 
 # configure
 
 COPY configure "${CONFIGURE_DIR}"
 RUN cd "${CONFIGURE_DIR}" \
-&& . ./env-common.sh && for I in ./??_*.sh; do "${I}" || exit $?; done \
+&& . ./env-common.sh && for I in ./??_*.sh; do if [ -x "${I}" ]; then "${I}" || exit $?; fi; done \
 && rm -rf "${CONFIGURE_DIR}"
 
 # start the main process
