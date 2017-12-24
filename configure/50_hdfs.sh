@@ -13,3 +13,5 @@ sed -i \
 	"${HDFS_CONF}"
 grep -o 'file://[^<]*' "${HDFS_CONF}" | cut -d / -f 3- | xargs -r mkdir -p
 ${HADOOP_HOME}/bin/hdfs namenode -format -nonInteractive
+
+# hadoop shell scripts require BASH, they are not compatible with Busybox ASH/SH

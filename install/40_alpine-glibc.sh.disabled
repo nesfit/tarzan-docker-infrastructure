@@ -1,0 +1,49 @@
+#!/bin/sh
+#
+# install GNU libc (aka glibc) and set C.UTF-8 locale as default
+#
+
+set -e
+set -o pipefail
+
+echo "*** downloading and installing Alpine Linux glibc" >&2
+
+ALPINE_GLIBC_KEY_URL="https://raw.githubusercontent.com/andyshinn/alpine-pkg-glibc/master/sgerrand.rsa.pub"
+ALPINE_GLIBC_KEY_FILE="/etc/apk/keys/sgerrand.rsa.pub"
+ALPINE_GLIBC_BASE_URL="https://github.com/sgerrand/alpine-pkg-glibc/releases/download"
+ALPINE_GLIBC_BASE_PACKAGE_FILENAME="glibc-${ALPINE_GLIBC_PACKAGE_VERSION}.apk"
+ALPINE_GLIBC_BIN_PACKAGE_FILENAME="glibc-bin-${ALPINE_GLIBC_PACKAGE_VERSION}.apk"
+ALPINE_GLIBC_I18N_PACKAGE_FILENAME="glibc-i18n-${ALPINE_GLIBC_PACKAGE_VERSION}.apk"
+ALPINE_PROFILE_LOCALE="/etc/profile.d/locale.sh"
+ALPINE_GLIBC_LDD="/usr/bin/gldd"
+
+mkdir -p cache "${DEST_DIR}"
+cd cache
+# install
+wget "${ALPINE_GLIBC_KEY_URL}" -O "${ALPINE_GLIBC_KEY_FILE}"
+wget -c \
+	"${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" \
+	"${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" \
+	"${ALPINE_GLIBC_BASE_URL}/${ALPINE_GLIBC_PACKAGE_VERSION}/${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}" \
+|| true # ignore "HTTP/1.1 416 Requested Range Not Satisfiable" error if the file is already fully retrieved
+apk add --no-cache "${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" "${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}"
+rm "${ALPINE_GLIBC_BASE_PACKAGE_FILENAME}" "${ALPINE_GLIBC_BIN_PACKAGE_FILENAME}" "${ALPINE_GLIBC_I18N_PACKAGE_FILENAME}" "${ALPINE_GLIBC_KEY_FILE}"
+# set locale (generate, symlink, set environment vars)
+/usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 C.UTF-8 || true
+ln -s /usr/glibc-compat/bin/locale /bin/locale
+cat > "${ALPINE_PROFILE_LOCALE}" <<END
+#!/bin/sh
+
+export LANG=C.UTF-8
+END
+chmod 755 "${ALPINE_PROFILE_LOCALE}"
+apk del --no-cache glibc-i18n
+# glibc ldd is broken, to check libraries on a glibc binary you need to run gldd
+cat > "${ALPINE_GLIBC_LDD}" <<END
+#!/bin/sh
+
+LD_TRACE_LOADED_OBJECTS=1 exec /usr/glibc-compat/lib/ld-linux-x86-64.so.2 $@
+END
+chmod 755 "${ALPINE_GLIBC_LDD}"
+#
+cd -

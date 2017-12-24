@@ -22,9 +22,9 @@ start() {
 	# HDSF
 	if [ -n "${ENABLE_HDFS}" ]; then
 		echo "*** starting HDFS name-node" >&2
-		/opt/hadoop/bin/hdfs namenode &
+		/opt/hadoop/bin/hdfs --daemon start namenode
 		echo "*** starting HDFS data-node" >&2
-		/opt/hadoop/bin/hdfs datanode &
+		/opt/hadoop/bin/hdfs --daemon start datanode
 		sleep 5
 	fi
 	# Spark
@@ -88,20 +88,23 @@ stop() {
 	# Cassandra -- ok with SIGTERM, however, we will kill explicitly
 	if [ -n "${ENABLE_CASSANDRA}" ]; then
 		echo "*** stopping Cassandra" >&2
-		pkill -f ' org\.apache\.cassandra\.service\.CassandraDaemon$'
+		/opt/cassandra/bin/nodetool disablegossip
+		/opt/cassandra/bin/nodetool disablethrift
+		/opt/cassandra/bin/nodetool drain
+		/opt/cassandra/bin/nodetool stopdaemon
 	fi
 	# ZooKeeper (in Kafka) -- ok with SIGTERM, however, we will stop explicitly
 	if [ -n "${ENABLE_ZOOKEEPER}" ]; then
 		echo "*** stopping Zookeper" >&2
 		/opt/kafka/bin/zookeeper-server-stop.sh
 	fi
-	# HDSF -- ok with SIGTERM, however, we will kill explicitly
+	# HDSF -- usually ok with SIGTERM, however, we will kill explicitly
 	if [ -n "${ENABLE_HDFS}" ]; then
 		echo "*** stopping HDFS data-node" >&2
-		pkill -f ' org\.apache\.hadoop\.hdfs\.server\.datanode\.DataNode$'
+		/opt/hadoop/bin/hdfs --daemon stop datanode
 		sleep 1
 		echo "*** stopping HDFS name-node" >&2
-		pkill -f ' org\.apache\.hadoop\.hdfs\.server\.namenode\.NameNode$'
+		/opt/hadoop/bin/hdfs --daemon stop namenode
 	fi
 	# SSHd -- ok with SIGTERM, we will leave running as it can be utilised to management
 }

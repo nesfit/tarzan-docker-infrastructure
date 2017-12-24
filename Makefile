@@ -6,7 +6,7 @@ ifndef LOCAL
 IMAGE:=$(REGISTRY)/$(IMAGE)
 endif
 
-TAG_DEVEL:=master
+TAG_DEVEL:=$(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo 'master')
 TAG_LATEST:=latest
 IMAGE_DEVEL:=$(IMAGE):$(TAG_DEVEL)
 IMAGE_LATEST:=$(IMAGE):$(TAG_LATEST)
@@ -67,10 +67,10 @@ show-ips:
 	docker ps -f ancestor=$(IMAGE_DEVEL) -f ancestor=$(IMAGE_LATEST) --format '{{.ID}}' | xargs -n 1 docker inspect | grep '\("Id"\|"Hostname"\|"Image"\|"IPAddress"\)'
 
 single%:
-	docker start --interactive tarzan-$(@) || docker run --init --tty --interactive --publish-all --hostname=tarzan-$(@) --name=tarzan-$(@) $(IMAGE_DEVEL) $(BIN_PATH_PREF)services-single bash
+	docker start --interactive tarzan-$(@) || docker run --init --tty --interactive --publish-all --hostname=tarzan-$(@) --name=tarzan-$(@) $(IMAGE_DEVEL) $(BIN_PATH_PREF)services-single /bin/sh --login
 
 single-latest%:
-	docker start --interactive tarzan-$(@) || docker run --init --tty --interactive --publish-all --hostname=tarzan-$(@) --name=tarzan-$(@) $(IMAGE_LATEST) $(BIN_PATH_PREF)services-single bash
+	docker start --interactive tarzan-$(@) || docker run --init --tty --interactive --publish-all --hostname=tarzan-$(@) --name=tarzan-$(@) $(IMAGE_LATEST) $(BIN_PATH_PREF)services-single /bin/sh --login
 
 test%:
 	docker run $(IMAGE_DEVEL) $(BIN_PATH_PREF)$(@)
