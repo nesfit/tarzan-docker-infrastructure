@@ -1,0 +1,3 @@
+[submodule "components/rysavy-ondrej-tarzan"]
+	path = components/rysavy-ondrej-tarzan
+	url = git@github.com:rysavy-ondrej/Tarzan.git
