@@ -1,0 +1,133 @@
+version: '3.3'
+services:
+
+  zeppelin:
+    image: registry.gitlab.com/rychly-docker/docker-zeppelin
+    environment:
+      - ZEPPELIN_PORT=8080
+      - ZEPPELIN_NOTEBOOK_DIR=/home/zeppelin
+      - MASTER=yarn
+      - RESOURCE_MANAGER=resourcemanager
+      - HISTUI_PORT=18080
+      - LOG_DIR=hdfs://namenode:8020/user/spark/applicationHistory
+      - HDFS_URL=http://namenode:9870/webhdfs/v1/
+      - PROP_SPARK_spark_jars=/opt/rysavy-ondrej-tarzan/Java/ndx-spark-shell/target/ndx-spark-shell/*.jar
+#    ports:
+#      - "8080:8080"
+    volumes:
+      - ./volumes/notebook:/home/zeppelin
+      - ./components/rysavy-ondrej-tarzan:/opt/rysavy-ondrej-tarzan
+    labels:
+      - "traefik.backend=zeppelin"
+      - "traefik.port=8080"
+      - "traefik.frontend.rule=PathPrefixStrip:/zeppelin/"
+      - "traefik.docker.network=tarzan-platform-docker_revproxy"
+    networks:
+      - default
+      - revproxy
+    deploy:
+      replicas: 1
+
+  resourcemanager:
+    image: registry.gitlab.com/rychly-docker/docker-yarn
+    environment:
+      - ROLE=resourcemanager
+      - RESOURCE_MANAGER=http://resourcemanager:8088,https://resourcemanager:8090,rpc://resourcemanager:8032,schrpc://resourcemanager:8030,rtrpc://resourcemanager:8031,admrpc://resourcemanager:8033
+      - DFS_DEFAULT=hdfs://namenode:8020
+#    ports:
+#      - "8088:8088"
+#      - "8090:8090"
+#      - "8032:8032"
+#      - "8030:8030"
+#      - "8031:8031"
+#      - "8033:8033"
+    labels:
+      - "traefik.backend=yarn"
+      - "traefik.port=8088"
+      - "traefik.frontend.rule=PathPrefixStrip:/yarn/"
+      - "traefik.docker.network=tarzan-platform-docker_revproxy"
+    networks:
+      - default
+      - revproxy
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  nodemanager:
+    image: registry.gitlab.com/rychly-docker/docker-yarn
+    environment:
+      - ROLE=nodemanager
+      - NODE_MANAGER=http://nodemanager:8042,https://nodemanager:8044,locipc://nodemanager:8040,csipc://nodemanager:8048
+      - RESOURCE_MANAGER=resourcemanager
+      - DFS_DEFAULT=hdfs://namenode:8020
+#    ports:
+#      - "8042"
+#      - "8044"
+#      - "8040"
+#      - "8048"
+    deploy:
+      mode: global
+  sparkhistory:
+    image: registry.gitlab.com/rychly-docker/docker-spark
+    environment:
+      - ROLE=history
+      - HISTUI_PORT=18080
+      - LOG_DIR=hdfs://namenode:8020/user/spark/applicationHistory
+#    ports:
+#      - "18080:18080"
+    labels:
+      - "traefik.backend=spark"
+      - "traefik.port=18080"
+      - "traefik.frontend.rule=PathPrefixStrip:/spark/"
+      - "traefik.docker.network=tarzan-platform-docker_revproxy"
+    networks:
+      - default
+      - revproxy
+    deploy:
+      replicas: 1
+
+  namenode:
+    image: registry.gitlab.com/rychly-docker/docker-hdfs
+    environment:
+      - ROLE=namenode
+      - DFS_DEFAULT=hdfs://namenode:8020
+      - NAME_DIRS=/home/hadoop/name
+      - DFS_NAMENODES=rpc://namenode:8020,http://namenode:9870,https://namenode:9871
+#    ports:
+#      - "8020:8020"
+#      - "9870:9870"
+#      - "9871:9871"
+    volumes:
+      - ./volumes/namenode:/home/hadoop/name
+    labels:
+      - "traefik.backend=hdfs"
+      - "traefik.port=9870"
+      - "traefik.frontend.rule=PathPrefixStrip:/hdfs/"
+      - "traefik.docker.network=tarzan-platform-docker_revproxy"
+    networks:
+      - default
+      - revproxy
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  datanode:
+    image: registry.gitlab.com/rychly-docker/docker-hdfs
+    environment:
+      - ROLE=datanode
+      - DFS_DEFAULT=hdfs://namenode:8020
+      - DATA_DIRS=/home/hadoop/data
+      - DFS_DATANODES=data://0.0.0.0:9866,http://0.0.0.0:9864,https://0.0.0.0:9865,ipc://0.0.0.0:9867
+#    ports:
+#      - "9866"
+#      - "9864"
+#      - "9865"
+#      - "9867"
+    volumes:
+      - ./volumes/datanode1:/home/hadoop/data
+    deploy:
+      mode: global
+
+networks:
+  revproxy:
+    external: true

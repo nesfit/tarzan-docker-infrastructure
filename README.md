@@ -15,15 +15,36 @@
 
 ## Deployment
 
-### Single Node
+### Single Node -- Zeppelin Standalone
 
 Just run:
 
 ~~~sh
-docker-compose -f docker-compose-single.yml up
+docker-compose -f docker-compose-standalone.yml up
 ~~~
 
-### Cluster
+Access [Zeppelin WebUI on localhost](http://localhost:8080/).
+
+### Multiple Nodes -- YARN, HDFS, Spark, Zeppelin
+
+Run the platform services (see the title), Treafik reverse-proxy server and load-balancer, and Portainer Docker management:
+
+~~~sh
+docker-compose -f docker-compose.yml up
+docker-compose -f docker-compose-traefik.yml up
+docker-compose -f docker-compose-portainer.yml up
+~~~
+
+Access the services:
+
+*	[YARN Resource Manager](http://localhost:8080/yarn/)
+*	[HDFS NameNode](http://localhost:8080/hdfs/)
+*	[Zeppelin WebUI](http://localhost:8080/zeppelin/)
+*	[Spark History Server](http://localhost:8080/spark/)
+*	[Traefik Monitoring](http://localhost:8080/traefik/)
+*	[Portainer Management](http://localhost:8080/portainer/)
+
+### Docker Swarm
 
 TBA
 

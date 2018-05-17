@@ -1,2 +1,4 @@
 # Docker volumes directories
 /volumes
+# Admin password file for Portainer
+/portainer-admin-password-file
