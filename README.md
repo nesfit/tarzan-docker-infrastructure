@@ -27,11 +27,11 @@ Access [Zeppelin WebUI on localhost](http://localhost:8080/).
 
 ### Multiple Nodes -- YARN, HDFS, Spark, Zeppelin
 
-Run the platform services (see the title), Treafik reverse-proxy server and load-balancer, and Portainer Docker management:
+Run the platform Treafik reverse-proxy server, services (see the title), and load-balancer, and Portainer Docker management:
 
 ~~~sh
-docker-compose -f docker-compose.yml up
 docker-compose -f docker-compose-traefik.yml up
+docker-compose -f docker-compose.yml up
 docker-compose -f docker-compose-portainer.yml up
 ~~~
 
