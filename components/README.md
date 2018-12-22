@@ -5,6 +5,7 @@
 The components are ususally available in their Git repositories. To **clone all the required repositories**, run:
 
 ~~~sh
+git submodule init
 git submodule update --recursive
 ~~~
 

@@ -2,7 +2,7 @@ version: '3.3'
 services:
 
   zeppelin:
-    image: registry.gitlab.com/rychly-docker/docker-zeppelin
+    image: registry.gitlab.com/rychly-edu/docker/docker-zeppelin
     environment:
       - ZEPPELIN_PORT=8080
       - ZEPPELIN_NOTEBOOK_DIR=/home/zeppelin
@@ -29,7 +29,7 @@ services:
       replicas: 1
 
   resourcemanager:
-    image: registry.gitlab.com/rychly-docker/docker-yarn
+    image: registry.gitlab.com/rychly-edu/docker/docker-yarn
     environment:
       - ROLE=resourcemanager
       - RESOURCE_MANAGER=http://resourcemanager:8088,https://resourcemanager:8090,rpc://resourcemanager:8032,schrpc://resourcemanager:8030,rtrpc://resourcemanager:8031,admrpc://resourcemanager:8033
@@ -54,7 +54,7 @@ services:
         constraints: [node.role == manager]
 
   nodemanager:
-    image: registry.gitlab.com/rychly-docker/docker-yarn
+    image: registry.gitlab.com/rychly-edu/docker/docker-yarn
     environment:
       - ROLE=nodemanager
       - NODE_MANAGER=http://nodemanager:8042,https://nodemanager:8044,locipc://nodemanager:8040,csipc://nodemanager:8048
@@ -68,7 +68,7 @@ services:
     deploy:
       mode: global
   sparkhistory:
-    image: registry.gitlab.com/rychly-docker/docker-spark
+    image: registry.gitlab.com/rychly-edu/docker/docker-spark
     environment:
       - ROLE=history
       - HISTUI_PORT=18080
@@ -87,7 +87,7 @@ services:
       replicas: 1
 
   namenode:
-    image: registry.gitlab.com/rychly-docker/docker-hdfs
+    image: registry.gitlab.com/rychly-edu/docker/docker-hdfs
     environment:
       - ROLE=namenode
       - DFS_DEFAULT=hdfs://namenode:8020
@@ -112,7 +112,7 @@ services:
         constraints: [node.role == manager]
 
   datanode:
-    image: registry.gitlab.com/rychly-docker/docker-hdfs
+    image: registry.gitlab.com/rychly-edu/docker/docker-hdfs
     environment:
       - ROLE=datanode
       - DFS_DEFAULT=hdfs://namenode:8020
@@ -128,6 +128,59 @@ services:
     deploy:
       mode: global
 
+  revproxy:
+    image: traefik
+#    image: containous/traefik:latest
+    command:
+      - "--api"
+      - "--entrypoints=Name:http Address::80 Redirect.EntryPoint:https"
+      - "--entrypoints=Name:https Address::443 TLS"
+      - "--defaultentrypoints=http,https"
+      - "--acme"
+      # Frequent restarts of the service/certificate requests will be blocked by LE servers as DoS attacks, unless the ACME storage is persistent (in a Docker volume).
+      - "--acme.storage=acme.json"
+      - "--acme.entryPoint=https"
+      - "--acme.httpChallenge.entryPoint=http"
+      - "--acme.onHostRule=true"
+      - "--acme.email=user@hostname.domain"
+      #- "--acme.acmelogging=true"
+      - "--acme.domains=hostname.domain"
+      - "--docker"
+      # SWARM only
+      #- "--docker.swarmMode"
+      - "--docker.domain=hostname.domain"
+      - "--docker.watch"
+      - "--logLevel=INFO"
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    ports:
+      - target: 80
+        published: 8080
+        mode: host
+      - target: 443
+        published: 8443
+        mode: host
+    labels:
+      - "traefik.backend=revproxy"
+      - "traefik.port=8080"
+      - "traefik.frontend.rule=PathPrefixStrip:/traefik/"
+      - "traefik.docker.network=tarzan-platform-docker_revproxy"
+    networks:
+      - revproxy
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.role == manager]
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
 networks:
   revproxy:
-    external: true
+    # SWARM only
+    #driver: overlay
+    attachable: true

@@ -1,3 +1,30 @@
 [submodule "components/rysavy-ondrej-tarzan"]
 	path = components/rysavy-ondrej-tarzan
 	url = git@github.com:rysavy-ondrej/Tarzan.git
+[submodule "docker-images/docker-livy"]
+	path = docker-images/docker-livy
+	url = https://gitlab.com/rychly-edu/docker/docker-livy.git
+[submodule "docker-images/docker-zookeeper"]
+	path = docker-images/docker-zookeeper
+	url = https://gitlab.com/rychly-edu/docker/docker-zookeeper.git
+[submodule "docker-images/docker-cassandra"]
+	path = docker-images/docker-cassandra
+	url = https://gitlab.com/rychly-edu/docker/docker-cassandra.git
+[submodule "docker-images/docker-kafka"]
+	path = docker-images/docker-kafka
+	url = https://gitlab.com/rychly-edu/docker/docker-kafka.git
+[submodule "docker-images/docker-yarn"]
+	path = docker-images/docker-yarn
+	url = https://gitlab.com/rychly-edu/docker/docker-yarn.git
+[submodule "docker-images/docker-zeppelin"]
+	path = docker-images/docker-zeppelin
+	url = https://gitlab.com/rychly-edu/docker/docker-zeppelin.git
+[submodule "docker-images/docker-spark"]
+	path = docker-images/docker-spark
+	url = https://gitlab.com/rychly-edu/docker/docker-spark.git
+[submodule "docker-images/docker-hdfs"]
+	path = docker-images/docker-hdfs
+	url = https://gitlab.com/rychly-edu/docker/docker-hdfs.git
+[submodule "docker-images/docker-hadoop-base"]
+	path = docker-images/docker-hadoop-base
+	url = https://gitlab.com/rychly-edu/docker/docker-hadoop-base.git
