@@ -1,4 +1,4 @@
-# TARZAN Platform for Docker
+# Docker Infrastructure for TARZAN Platform
 
 ## Technologies
 
