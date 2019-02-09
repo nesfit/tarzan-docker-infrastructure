@@ -6,6 +6,6 @@ services:
       - /usr/local/bin/mvn-entrypoint.sh
       - sh
       - -c
-      - cd /usr/src/mymaven/Java && exec mvn clean package
+      - apk --no-cache add attr && setfattr -n user.pax.flags -v em /usr/bin/java /usr/lib/jvm/*/bin/java && cd /usr/src/mymaven/Java && exec mvn clean package
     volumes:
       - ./rysavy-ondrej-tarzan:/usr/src/mymaven
