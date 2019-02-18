@@ -1,0 +1,60 @@
+version: '3.3'
+
+networks:
+
+  revproxy:
+    # SWARM only
+    #driver: overlay
+    attachable: true
+
+services:
+
+  revproxy:
+    image: traefik
+    networks:
+      - revproxy
+    command:
+      - "--api"
+      - "--entrypoints=Name:http Address::80 Redirect.EntryPoint:https"
+      - "--entrypoints=Name:https Address::443 TLS"
+      - "--defaultentrypoints=http,https"
+      - "--acme"
+      # Frequent restarts of the service/certificate requests will be blocked by LE servers as DoS attacks, unless the ACME storage is persistent (in a Docker volume).
+      - "--acme.storage=acme.json"
+      - "--acme.entryPoint=https"
+      - "--acme.httpChallenge.entryPoint=http"
+      - "--acme.onHostRule=true"
+      - "--acme.email=user@hostname.domain"
+      #- "--acme.acmelogging=true"
+      - "--acme.domains=hostname.domain"
+      - "--docker"
+      # SWARM only
+      #- "--docker.swarmMode"
+      - "--docker.domain=hostname.domain"
+      - "--docker.watch"
+      - "--logLevel=INFO"
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+    ports:
+      - target: 80
+        published: 8080
+        mode: host
+      - target: 443
+        published: 8443
+        mode: host
+    labels:
+      - "traefik.backend=revproxy"
+      - "traefik.port=8080"
+      - "traefik.frontend.rule=PathPrefixStrip:/traefik/"
+      - "traefik.docker.network=tarzan-platform-docker_revproxy"
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.role == manager]
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
