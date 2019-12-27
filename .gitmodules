@@ -28,3 +28,18 @@
 [submodule "docker-images/docker-hadoop-base"]
 	path = docker-images/docker-hadoop-base
 	url = https://gitlab.com/rychly-edu/docker/docker-hadoop-base.git
+[submodule "docker-images/docker-spark-app"]
+	path = docker-images/docker-spark-app
+	url = https://gitlab.com/rychly-edu/docker/docker-spark-app.git
+[submodule "docker-images/docker-halyard-webapps"]
+	path = docker-images/docker-halyard-webapps
+	url = https://gitlab.com/rychly-edu/docker/docker-halyard-webapps.git
+[submodule "docker-images/docker-hadoop-hbase-base"]
+	path = docker-images/docker-hadoop-hbase-base
+	url = https://gitlab.com/rychly-edu/docker/docker-hadoop-hbase-base.git
+[submodule "docker-images/docker-halyard-sdk"]
+	path = docker-images/docker-halyard-sdk
+	url = https://gitlab.com/rychly-edu/docker/docker-halyard-sdk.git
+[submodule "docker-images/docker-hbase"]
+	path = docker-images/docker-hbase
+	url = https://gitlab.com/rychly-edu/docker/docker-hbase.git
