@@ -94,83 +94,147 @@ The services can be utilised by platform applications/components, e.g., by
 ### Example: PCAP Analysis in Zeppelin Notebook (Network Traces Analysis Using Apache Spark)
 
 This example demonstrates the Network Traces Analysis Using Apache Spark by using the first platform application/component mentioned above.
+The example is based on [the original sample](https://github.com/nesfit/Tarzan/blob/master/Java/zeppelin-note) from [the GitHub repository](https://github.com/nesfit/Tarzan).
 
 Go to the [Zeppelin WebUI](https://localhost:8443/zeppelin/) and create a new Spark note in the Notebook. Then, create and run the following paragraphs:
 
 ~~~scala
 %spark
-import org.ndx.model.Packet;
-import org.ndx.model.PacketModel.RawFrame;
-import org.ndx.model.Statistics;
-
-val frames = sc.hadoopFile("hdfs://localhost/cap/*.cap",
-classOf[org.ndx.pcap.PcapInputFormat],
-classOf[org.apache.hadoop.io.LongWritable],
-classOf[org.apache.hadoop.io.ObjectWritable])
-
-val packets = frames.map(x=> Packet.parsePacket(x._2.get().asInstanceOf[RawFrame]))
-
-val capinfo = packets.map(x => Statistics.fromPacket(x)).reduce(Statistics.merge)
-
-val flows = packets.map(x=>(x.getFlowString(),x))
-
-val stats = flows.map(x=>(x._1,Statistics.fromPacket(x._2))).reduceByKey(Statistics.merge)
-
-case class PacketStat(firstSeen:java.sql.Date, lastSeen:java.sql.Date, protocol:String, srcAddr:String, srcSel:String, dstAddr:String, dstSel:String, packets:Integer, octets:Long)
-
-val packetStats = stats.map(c => (Packet.flowKeyParse(c._1),c._2)).map(c => PacketStat(
-    new java.sql.Date(Statistics.ticksToDate(c._2.getFirstSeen()).getTime()),
-    new java.sql.Date(Statistics.ticksToDate(c._2.getLastSeen()).getTime()),
-    c._1.getProtocol().toStringUtf8(),
-    c._1.getSourceAddress().toStringUtf8(),
-    c._1.getSourceSelector().toStringUtf8(),
-    c._1.getDestinationAddress().toStringUtf8(),
-    c._1.getDestinationSelector().toStringUtf8(),
-    c._2.getPackets(),
-    c._2.getOctets()
-    ))
-
-packetStats.toDF.registerTempTable("packetStats")
+import org.ndx.tshark.scala.TShark
+val packets = TShark.getPackets(sc, "hdfs://namenode/data/http_m2.json")
+val smtpPackets = TShark.getPackets(sc, "hdfs://namenode/data/smtp.json")
+TShark.registerHttpHostnames("httpHostnames", packets, spark)
+TShark.registerKeywords("keywords", packets, List("sme.sk", "site.the.cz"), spark, sc)
+TShark.registerDnsData("dnsData", packets, spark)
+TShark.registerFlowStatistics("flowStatistics", packets, spark)
+TShark.registerFlowStatistics("smtpFlowStatistics", smtpPackets, spark)
 ~~~
 
-Get all the packet flows.
+Get URLs from HTTP headers.
 
 ~~~sql
 %sql
-select * from packetStats
+select url, count(*) from httpHostnames group by url
 ~~~
 
-Get top 10 flows by the number of packets.
+Get keywords.
+~~~sql
+%sql
+select keyword, count from keywords
+~~~
+
+Get DNS query record types.
 
 ~~~sql
 %sql
-select * from packetStats order by packets desc limit 10
+select recordType, count(*) from dnsData where recordType != "" group by recordType
 ~~~
 
-Get top 20 flows with respect to octets.
-
-~~~sql
-select * from packetStats order by octets desc limit 20
-~~~
-
-Get top 20 flows with the longest duration.
-
-~~~sql
-select * from packetStats order by (lastSeen-firstSeen) desc limit 20
-~~~
-
-Get application flows for a specific application/service.
-
-~~~sql
-select * from packetStats where srcSel = "80" order by packets desc limit 20
-~~~
-
-Get top 10 source addresses by packets communicated in the flows.
+Get a timeline of flows (flows/time).
 
 ~~~sql
 %sql
-select srcAddr, sum(packets) from packetStats group by srcAddr order by sum(packets) desc limit 10
+select from_unixtime(unix_timestamp(first, 'yyyy-MM-dd HH:mm:ss.SSS'), 'yyyy-MM-dd HH:mm'), count(*)
+from flowStatistics group by first order by first
 ~~~
+
+Get a timeline of packets (packets/time).
+
+~~~sql
+%sql
+select from_unixtime(unix_timestamp(first, 'yyyy-MM-dd HH:mm:ss.SSS'), 'yyyy-MM-dd HH:mm'), sum(packets)
+from flowStatistics group by first order by first
+~~~
+
+Get a timeline of data (bytes/time).
+
+~~~sql
+%sql
+select from_unixtime(unix_timestamp(first, 'yyyy-MM-dd HH:mm:ss.SSS'), 'yyyy-MM-dd HH:mm'), sum(bytes)
+from flowStatistics group by first order by first
+~~~
+
+Get a timeline of HTTP traffic (packets/time).
+
+~~~sql
+%sql
+select from_unixtime(unix_timestamp(first, 'yyyy-MM-dd HH:mm:ss.SSS'), 'yyyy-MM-dd HH:mm') as time, sum(packets)
+from flowStatistics where service == "80" group by time order by time
+~~~
+
+Get a timeline of HTTPS traffic (packets/time).
+
+~~~sql
+%sql
+select from_unixtime(unix_timestamp(first, 'yyyy-MM-dd HH:mm:ss.SSS'), 'yyyy-MM-dd HH:mm') as time, sum(packets)
+from flowStatistics where service == "443" group by time order by time
+~~~
+
+Get a size of HTTP and HTTPS traffic.
+
+~~~sql
+%sql
+select service, sum(packets) from flowStatistics where service == "80" or service == "443" group by service
+~~~
+
+Get a size of LAN and WAN traffic.
+
+~~~sql
+%sql
+select lanWan, count(*) from flowStatistics where lanWan == "lan" or lanWan == "wan" group by lanWan
+~~~
+
+Get domains from DNS requests.
+
+~~~sql
+%sql
+select domain, count(*) from dnsData where domain != "" and isResponse == false group by domain limit 10
+~~~
+
+Get the email traffic structure.
+
+~~~sql
+%sql
+select email, sum(bytes) from smtpFlowStatistics where email != "" group by email
+~~~
+
+Get web-servers producing the most traffic.
+
+~~~sql
+%sql
+select srcAddr, sum(bytes) from flowStatistics where srcPort == "80" or srcPort == "443" group by srcAddr limit 10
+~~~
+
+Get end-points receiving the most traffic.
+
+~~~sql
+%sql
+select dstAddr, sum(bytes) from flowStatistics group by dstAddr limit 10
+~~~
+
+Get SMTP/SMTPS clients producing the most traffic.
+
+~~~sql
+%sql
+select srcAddr, sum(bytes) from smtpFlowStatistics
+where (email == "smtp" or email == "smtps") and direction == "up" group by srcAddr limit 10
+~~~
+
+Get SMTP/SMTPS servers producing the most traffic.
+
+~~~sql
+%sql
+select srcAddr, sum(bytes) from smtpFlowStatistics
+where (email == "smtp" or email == "smtps") and direction == "down" group by srcAddr limit 10
+~~~
+
+### Example: Time-line Analysis of Events Extracted from Files in a File-system Dump (PySpark Plaso)
+
+The TARZAN Docker Infrastructure is utilized in [PySpark Plaso](https://github.com/nesfit/pyspark-plaso) to deploy system components.
+
+For sample deployment, see [docker-compose.yml files](https://github.com/nesfit/pyspark-plaso/tree/master/deployment/docker-compose) in the PySpark Plaso project.
+
+The infrastructure components are also utilized in [the (alternative) Kubernetes deployment](https://github.com/nesfit/pyspark-plaso/tree/master/deployment/kubernetes).
 
 ## Acknowledgements
 

@@ -21,7 +21,7 @@ services:
       - HISTUI_PORT=18080
       - LOG_DIR=hdfs://namenode:8020/user/spark/applicationHistory
       - HDFS_URL=http://namenode:9870/webhdfs/v1/
-      - PROP_SPARK_spark_jars=/opt/michal-beder-tarzan/Java/ndx-spark-shell/target
+      - PROP_SPARK_spark_jars=/opt/michal-beder-tarzan/Java/ndx-spark-model/target,/opt/michal-beder-tarzan/Java/ndx-spark-pcap/target,/opt/michal-beder-tarzan/Java/ndx-spark-shell/target,/opt/michal-beder-tarzan/Java/ndx-spark-tshark/target
 #    ports:
 #      - "8080:8080"
     volumes:
