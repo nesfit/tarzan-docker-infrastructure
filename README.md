@@ -1,25 +1,32 @@
 # Docker Infrastructure for TARZAN Platform
 
+(c) 2019-2020 Marek Rychly (rychly@fit.vutbr.cz)
+
+Docker Infrastructure for TARZAN Platform (single-host and multiple-host configurations).
+
 ## Technologies
 
 ### Distributed Computing
 
-* [Apache Spark](https://spark.apache.org/docs/latest/) -- batch and stream processing
-* [Apache Hadoop](https://hadoop.apache.org/docs/current/) -- MapReduce batch processing, a platform base
+*	[Apache Spark](https://spark.apache.org/docs/latest/) -- batch and stream processing
+*	[Apache Hadoop](https://hadoop.apache.org/docs/current/) -- MapReduce batch processing, a platform base
 
 ### Data Storage
 
-* [Apache Cassandra](https://cassandra.apache.org/doc/latest/) -- a NoSQL database
-* [Apache HDFS](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html) -- a file-system
+*	[Apache Cassandra](https://cassandra.apache.org/doc/latest/) -- a NoSQL database
+*	[Apache HDFS](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html) -- a file-system
 
 ### Communication
 
-* [Apache Kafka](https://kafka.apache.org/documentation.html) -- a message queue broker
+*	[Apache Kafka](https://kafka.apache.org/documentation.html) -- a message queue broker
 
 ### API / Development Tools
 
-* [Apache Livy](https://livy.incubator.apache.org/docs/latest/) -- REST API for Apache Spark
-* [Apache Zeppelin](https://zeppelin.apache.org/docs/) -- Web UI for various distributed computation/data processing interpreters and data visualisation
+*	[Apache Livy](https://livy.incubator.apache.org/docs/latest/) -- REST API for Apache Spark
+*	[Apache Zeppelin](https://zeppelin.apache.org/docs/) -- Web UI for various distributed computation/data processing interpreters and data visualisation
+*	[Halyard SDK and WebApps](https://github.com/Merck/Halyard) -- horizontally scalable triple store with support for named graphs
+*	[Plaso](https://github.com/log2timeline/plaso) -- tools for automatic creation of timelines to support digital forensic investigators/analysts
+*	[Timeline Analyzer](https://github.com/nesfit/timeline-analyzer) -- a framework for efficient analysis of social network profiles and other related data
 
 ## Requirements
 
@@ -81,9 +88,12 @@ Access the service:
 
 The services can be utilised by platform applications/components, e.g., by
 
-*	[rysavy-ondrej/Tarzan](https://github.com/rysavy-ondrej/Tarzan/tree/c1676a3d8eee71e1e8ac4ad1fe5f674d2f3396f8) -- not only packet analysis in Spark
+*	[Network Traces Analysis Using Apache Spark](https://www.fit.vut.cz/study/thesis/20651/.en) ([GitHub](https://github.com/nesfit/Tarzan)) -- network traces analysis using Apache Spark distributed system
+*	[PySpark Plaso](https://github.com/nesfit/pyspark-plaso) -- distributed extraction of timestamps from various files using extractors adapted from the Plaso engine to Apache Spark
 
-### Example: PCAP Analysis in Zeppelin Notebook
+### Example: PCAP Analysis in Zeppelin Notebook (Network Traces Analysis Using Apache Spark)
+
+This example demonstrates the Network Traces Analysis Using Apache Spark by using the first platform application/component mentioned above.
 
 Go to the [Zeppelin WebUI](https://localhost:8443/zeppelin/) and create a new Spark note in the Notebook. Then, create and run the following paragraphs:
 
@@ -161,3 +171,7 @@ Get top 10 source addresses by packets communicated in the flows.
 %sql
 select srcAddr, sum(packets) from packetStats group by srcAddr order by sum(packets) desc limit 10
 ~~~
+
+## Acknowledgements
+
+*This work was supported by the Ministry of the Interior of the Czech Republic as a part of the project Integrated platform for analysis of digital data from security incidents VI20172020062.*

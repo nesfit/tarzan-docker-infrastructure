@@ -1,6 +1,6 @@
-[submodule "components/rysavy-ondrej-tarzan"]
-	path = components/rysavy-ondrej-tarzan
-	url = git@github.com:rysavy-ondrej/Tarzan.git
+[submodule "components/michal-beder-tarzan"]
+	path = components/michal-beder-tarzan
+	url = https://github.com/nesfit/Tarzan.git
 [submodule "docker-images/docker-livy"]
 	path = docker-images/docker-livy
 	url = https://gitlab.com/rychly-edu/docker/docker-livy.git
@@ -43,3 +43,9 @@
 [submodule "docker-images/docker-hbase"]
 	path = docker-images/docker-hbase
 	url = https://gitlab.com/rychly-edu/docker/docker-hbase.git
+[submodule "docker-images/docker-timeline-analyzer"]
+	path = docker-images/docker-timeline-analyzer
+	url = https://gitlab.com/rychly-edu/docker/docker-timeline-analyzer.git
+[submodule "docker-images/docker-plaso"]
+	path = docker-images/docker-plaso
+	url = https://gitlab.com/rychly-edu/docker/docker-plaso.git
